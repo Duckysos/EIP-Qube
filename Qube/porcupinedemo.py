@@ -1,37 +1,38 @@
 import pvporcupine
 import pyaudio
 import numpy as np
+import struct
 
-# Audio recording parameters
-FORMAT = pyaudio.paInt16  # Audio format (16-bit PCM)
-CHANNELS = 1              # Number of audio channels (mono)
-RATE = 44100              # Sample rate
-CHUNK = 512          # Frames per buffer, adjust if necessary
-RECORD_SECONDS = 5        # Duration of recording
 
+porcupine = None
+audio = None
+audio_stream = None
+pv_access_key = 'YcqT9Njmr3eqJQkf/nZNeDp0k5vX4OOHfvyrdsPf9IChaK36XJxu8w=='
+custom_keyword_path = "C:\\Users\\iankh\\Documents\\GitHub\\EIP-Qube\\Qube\\Hello-Cube_en_windows_v3_0_0.ppn"
 # Initialize Porcupine
 porcupine = pvporcupine.create(
-    access_key='YcqT9Njmr3eqJQkf/nZNeDp0k5vX4OOHfvyrdsPf9IChaK36XJxu8w==',
-    keyword_paths=["c:\\Users\\user\\OneDrive\\Documents\\GitHub\\EIP-Qube\\Qube\\Hello-Cube_en_windows_v3_0_0.ppn"]
+    access_key= pv_access_key,
+    keyword_paths= [custom_keyword_path],
 )
+
 
 # Initialize PyAudio
 audio = pyaudio.PyAudio()
 
-stream = audio.open(format=FORMAT, channels=CHANNELS,
-                    rate=RATE, input=True,
-                    frames_per_buffer=CHUNK)
+audio_stream = audio.open(format=pyaudio.paInt16, channels=1,
+                    rate=porcupine.sample_rate, input=True,
+                    frames_per_buffer=porcupine.frame_length)
 
 print("Listening...")
 
+
 try:
     while True:
-        for _ in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-            data = stream.read(CHUNK)
+            data = audio_stream.read(porcupine.frame_length)
             # Convert byte data to int16 using NumPy
-            pcm = np.frombuffer(data, dtype=np.int16)
+            pcm = struct.unpack_from("h" * porcupine.frame_length, data)
             keyword_index = porcupine.process(pcm)
-            
+
             if keyword_index >= 0:
                 print("Hello Cube detected!")
                 break  # Exit the inner loop if keyword detected
@@ -39,13 +40,10 @@ except KeyboardInterrupt:
     print("Exiting...")
 
 # Cleanup
-stream.stop_stream()
-stream.close()
+audio_stream.stop_stream()
+audio_stream.close()
 audio.terminate()
 porcupine.delete()
-
-
-    
 
 
     
