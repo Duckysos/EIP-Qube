@@ -7,12 +7,16 @@ import struct
 import time
 import requests 
 
+api_url = "https://0988-185-92-25-79.ngrok-free.app"
+headers = {
+     'ngrok-skip-browser-warning':'69420'
+}
 cobra = None
 porcupine = None
 audio = None
 audio_stream = None
 pv_access_key = 'YcqT9Njmr3eqJQkf/nZNeDp0k5vX4OOHfvyrdsPf9IChaK36XJxu8w=='
-custom_keyword_path = "C:\\Users\\iankh\\Documents\\GitHub\\EIP-Qube\\Qube\\Hello-Cube_en_windows_v3_0_0.ppn"
+custom_keyword_path = "C:\\Users\\user\\OneDrive\\Documents\\GitHub\\EIP-Qube\\Qube\\Hello-Cube_en_windows_v3_0_0.ppn"
 
 
 # Audio recording parameters
@@ -22,6 +26,37 @@ RATE = 44100              # Sample rate (samples per second)
 CHUNK = 1024              # Number of frames per buffer
 RECORD_SECONDS = 5        # Duration of recording
 WAVE_OUTPUT_FILENAME = "output.wav"  # Output file name
+
+
+def listen_until_silence():
+        frames = []
+        last_voice_time = time.time()
+        silence_threshold = 1.3
+        cobra = pvcobra.create(access_key=pv_access_key)
+        # Record audio until silence
+        while True:
+            data = stream.read(cobra.frame_length, exception_on_overflow=False)
+            pcm = struct.unpack_from("h" * cobra.frame_length, data)
+            if cobra.process(pcm) > 0.5:
+                last_voice_time = time.time()
+                frames.append(data)
+            else:
+                if(time.time() - last_voice_time) > silence_threshold:
+                    print("End of speech detected.")
+                    break
+
+        # Stop and close the stream
+        stream.stop_stream()
+        stream.close()
+        audio.terminate()
+
+        # Save the recorded data as a WAV file
+        with wave.open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
+            wf.setnchannels(CHANNELS)
+            wf.setsampwidth(audio.get_sample_size(FORMAT))
+            wf.setframerate(RATE)
+            wf.writeframes(b''.join(frames))
+    
 def wake_word():
 
     # Initialize Porcupine
@@ -129,26 +164,14 @@ while True:
 
         print("Recording...")
 
-        frames = []
+        listen_until_silence()
 
-        # Record audio in chunks for the duration specified
-        for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-            data = stream.read(CHUNK)
-            frames.append(data)
+        response = requests.get(f"{api_url}/getAllLessons", headers=headers)
+        
+        if response.status_code == 200:
+             print(response.json())
 
-        print("Finished recording.")
-
-        # Stop and close the stream
-        stream.stop_stream()
-        stream.close()
-        audio.terminate()
-
-        # Save the recorded data as a WAV file
-        with wave.open(WAVE_OUTPUT_FILENAME, 'wb') as wf:
-            wf.setnchannels(CHANNELS)
-            wf.setsampwidth(audio.get_sample_size(FORMAT))
-            wf.setframerate(RATE)
-            wf.writeframes(b''.join(frames))
-
+        else:
+             print(f"Error: {response.status_code} - {response.text}") 
         break
 

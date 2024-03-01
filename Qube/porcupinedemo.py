@@ -8,7 +8,7 @@ porcupine = None
 audio = None
 audio_stream = None
 pv_access_key = 'YcqT9Njmr3eqJQkf/nZNeDp0k5vX4OOHfvyrdsPf9IChaK36XJxu8w=='
-custom_keyword_path = "C:\\Users\\iankh\\Documents\\GitHub\\EIP-Qube\\Qube\\Hello-Cube_en_windows_v3_0_0.ppn"
+custom_keyword_path = "C:\\Users\\user\\OneDrive\\Documents\\GitHub\\EIP-Qube\\Qube\\Hello-Cube_en_windows_v3_0_0.ppn"
 # Initialize Porcupine
 porcupine = pvporcupine.create(
     access_key= pv_access_key,
