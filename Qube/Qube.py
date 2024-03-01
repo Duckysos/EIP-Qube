@@ -16,30 +16,78 @@ porcupine = None
 audio = None
 audio_stream = None
 pv_access_key = 'YcqT9Njmr3eqJQkf/nZNeDp0k5vX4OOHfvyrdsPf9IChaK36XJxu8w=='
-custom_keyword_path = "C:\\Users\\user\\OneDrive\\Documents\\GitHub\\EIP-Qube\\Qube\\Hello-Cube_en_windows_v3_0_0.ppn"
+custom_keyword_path = "C:/Users/iankh/Documents/GitHub/EIP-Qube/Qube/Hello-Cube_en_windows_v3_0_0.ppn"
 
 
 # Audio recording parameters
 FORMAT = pyaudio.paInt16  # Audio format (16-bit PCM)
 CHANNELS = 1              # Number of audio channels (1 for mono, 2 for stereo)
-RATE = 44100              # Sample rate (samples per second)
+RATE = 40000             # Sample rate (samples per second)
 CHUNK = 1024              # Number of frames per buffer
 RECORD_SECONDS = 5        # Duration of recording
 WAVE_OUTPUT_FILENAME = "output.wav"  # Output file name
+
+def play_audio(file_path):
+    # Open the WAV file
+    wf = wave.open(file_path, 'rb')
+
+    # Create a PyAudio object
+    p = pyaudio.PyAudio()
+
+    # Open a stream
+    stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+                    channels=wf.getnchannels(),
+                    rate=wf.getframerate(),
+                    output=True)
+
+    # Read data in chunks
+    chunk_size = 1024
+    data = wf.readframes(chunk_size)
+
+    # Play the audio file
+    while data != b'':
+        stream.write(data)
+        data = wf.readframes(chunk_size)
+
+    # Stop and close the stream
+    stream.stop_stream()
+    stream.close()
+
+    # Close PyAudio
+    p.terminate()
 
 
 def listen_until_silence():
         frames = []
         last_voice_time = time.time()
-        silence_threshold = 1.3
+        silence_threshold = 1.5
         cobra = pvcobra.create(access_key=pv_access_key)
+        silence_pa = pyaudio.PyAudio()
+        audio = pyaudio.PyAudio()
+
+        cobra_stream = silence_pa.open(
+                rate=cobra.sample_rate,
+                channels=1,
+                format=pyaudio.paInt16,
+                input=True,
+                frames_per_buffer=cobra.frame_length)
+        
+        stream = audio.open(
+                    format=FORMAT, 
+                    channels=CHANNELS,
+                    rate=RATE, 
+                    input=True,
+                    frames_per_buffer=CHUNK)
+        
         # Record audio until silence
         while True:
-            data = stream.read(cobra.frame_length, exception_on_overflow=False)
-            pcm = struct.unpack_from("h" * cobra.frame_length, data)
-            if cobra.process(pcm) > 0.5:
+            data = stream.read(CHUNK)
+            cobra_pcm = cobra_stream.read(cobra.frame_length, exception_on_overflow=False)
+            cobra_pcm = struct.unpack_from("h" * cobra.frame_length, cobra_pcm)
+            frames.append(data)
+            print(cobra.process(cobra_pcm))
+            if cobra.process(cobra_pcm) > 0.1:
                 last_voice_time = time.time()
-                frames.append(data)
             else:
                 if(time.time() - last_voice_time) > silence_threshold:
                     print("End of speech detected.")
@@ -92,65 +140,6 @@ def wake_word():
         print("Exiting...")
 
 
-
-
-def listen():
-
-    cobra = pvcobra.create(access_key=pv_access_key)
-
-    listen_pa = pyaudio.PyAudio()
-
-    listen_audio_stream = listen_pa.open(
-                rate=cobra.sample_rate,
-                channels=1,
-                format=pyaudio.paInt16,
-                input=True,
-                frames_per_buffer=cobra.frame_length)
-
-    print("Listening...")
-
-    while True:
-        listen_pcm = listen_audio_stream.read(cobra.frame_length)
-        listen_pcm = struct.unpack_from("h" * cobra.frame_length, listen_pcm)
-           
-        if cobra.process(listen_pcm) > 0.3:
-            print("Voice detected")
-            listen_audio_stream.stop_stream
-            listen_audio_stream.close()
-            cobra.delete()
-            break
-
-def detect_silence():
-
-    cobra = pvcobra.create(access_key=pv_access_key)
-
-    silence_pa = pyaudio.PyAudio()
-
-    cobra_audio_stream = silence_pa.open(
-                    rate=cobra.sample_rate,
-                    channels=1,
-                    format=pyaudio.paInt16,
-                    input=True,
-                    frames_per_buffer=cobra.frame_length)
-
-    last_voice_time = time.time()
-
-    while True:
-        cobra_pcm = cobra_audio_stream.read(cobra.frame_length)
-        cobra_pcm = struct.unpack_from("h" * cobra.frame_length, cobra_pcm)
-           
-        if cobra.process(cobra_pcm) > 0.2:
-            last_voice_time = time.time()
-        else:
-            silence_duration = time.time() - last_voice_time
-            if silence_duration > 1.3:
-                print("End of query detected\n")
-                cobra_audio_stream.stop_stream                
-                cobra_audio_stream.close()
-                cobra.delete()
-                last_voice_time=None
-                break
-
 while True:
 
         wake_word()
@@ -165,13 +154,7 @@ while True:
         print("Recording...")
 
         listen_until_silence()
+        play_audio("C:/Users/iankh/Documents/GitHub/EIP-Qube/Qube/output.wav")
 
-        response = requests.get(f"{api_url}/getAllLessons", headers=headers)
-        
-        if response.status_code == 200:
-             print(response.json())
-
-        else:
-             print(f"Error: {response.status_code} - {response.text}") 
         break
 
