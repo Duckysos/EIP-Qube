@@ -15,7 +15,7 @@ cobra = None
 porcupine = None
 audio = None
 audio_stream = None
-pv_access_key = 'YcqT9Njmr3eqJQkf/nZNeDp0k5vX4OOHfvyrdsPf9IChaK36XJxu8w=='
+pv_access_key = 'vQGSiJdU4ezx8QXs2+S+c6D0Zutcp9z3a0y8R7YHfMrLP5rB+gEZFw=='
 custom_keyword_path = "C:/Users/iankh/Documents/GitHub/EIP-Qube/Qube/Hello-Cube_en_windows_v3_0_0.ppn"
 
 
@@ -152,7 +152,7 @@ while True:
                             frames_per_buffer=CHUNK)
 
         print("Recording...")
-        listen_until_silence()
+        listen_until_silence() 
         play_audio("C:/Users/iankh/Documents/GitHub/EIP-Qube/output.wav")
 
         break
