@@ -152,9 +152,8 @@ while True:
                             frames_per_buffer=CHUNK)
 
         print("Recording...")
-
         listen_until_silence()
-        play_audio("C:/Users/iankh/Documents/GitHub/EIP-Qube/Qube/output.wav")
+        play_audio("C:/Users/iankh/Documents/GitHub/EIP-Qube/output.wav")
 
         break
 

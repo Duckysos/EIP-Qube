@@ -1,10 +1,12 @@
+
+  
 import requests 
 
   
 
 # Specify the API endpoint URL 
 
-api_url = "https://2393-94-175-61-189.ngrok-free.app/getAllLessons"
+api_url = "https://0988-185-92-25-79.ngrok-free.app/getAllLessons"
 
   
 
@@ -34,4 +36,4 @@ else:
 
     # Print an error message if the request was not successful 
 
-    print(f"Error: {response.status_code} - {response.text}") 
+    print(f"Error: {response.status_code} - {response.text}")
