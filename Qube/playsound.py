@@ -30,5 +30,6 @@ def play_audio(file_path):
     # Close PyAudio
     p.terminate()
 
-file_path = "C:/Users/iankh/Documents/GitHub/EIP-Qube/Qube/output.wav"
+file_path = "C:/Users/iankh/Documents/GitHub/EIP-Qube/Qube/downloaded_audio.wav"
+
 play_audio(file_path)

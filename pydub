@@ -1,0 +1,8 @@
+from pydub import AudioSegment
+from pydub.playback import play
+
+# Load the audio file (pydub supports multiple formats thanks to ffmpeg)
+audio = AudioSegment.from_file("C:/Users/iankh/Documents/GitHub/EIP-Qube/Qube/downloaded_audio.wav")
+
+# Play the audio
+play(audio)

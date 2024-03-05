@@ -5,9 +5,10 @@ import wave
 import numpy as np
 import struct
 import time
-import requests 
-
-api_url = "https://0988-185-92-25-79.ngrok-free.app"
+import requests
+from pydub import AudioSegment
+from pydub.playback import play
+api_url = "https://5fd3-92-237-138-59.ngrok-free.app/audio_to_audio"
 headers = {
      'ngrok-skip-browser-warning':'69420'
 }
@@ -19,43 +20,19 @@ pv_access_key = 'vQGSiJdU4ezx8QXs2+S+c6D0Zutcp9z3a0y8R7YHfMrLP5rB+gEZFw=='
 custom_keyword_path = "C:/Users/iankh/Documents/GitHub/EIP-Qube/Qube/Hello-Cube_en_windows_v3_0_0.ppn"
 
 
+
 # Audio recording parameters
 FORMAT = pyaudio.paInt16  # Audio format (16-bit PCM)
 CHANNELS = 1              # Number of audio channels (1 for mono, 2 for stereo)
 RATE = 40000             # Sample rate (samples per second)
 CHUNK = 1024              # Number of frames per buffer
 RECORD_SECONDS = 5        # Duration of recording
-WAVE_OUTPUT_FILENAME = "output.wav"  # Output file name
+WAVE_OUTPUT_FILENAME = "audio.wav"  # Output file name
+
 
 def play_audio(file_path):
-    # Open the WAV file
-    wf = wave.open(file_path, 'rb')
-
-    # Create a PyAudio object
-    p = pyaudio.PyAudio()
-
-    # Open a stream
-    stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-                    channels=wf.getnchannels(),
-                    rate=wf.getframerate(),
-                    output=True)
-
-    # Read data in chunks
-    chunk_size = 1024
-    data = wf.readframes(chunk_size)
-
-    # Play the audio file
-    while data != b'':
-        stream.write(data)
-        data = wf.readframes(chunk_size)
-
-    # Stop and close the stream
-    stream.stop_stream()
-    stream.close()
-
-    # Close PyAudio
-    p.terminate()
-
+     audio = AudioSegment.from_file(file_path)
+     play(audio)
 
 def listen_until_silence():
         frames = []
@@ -106,7 +83,7 @@ def listen_until_silence():
             wf.writeframes(b''.join(frames))
     
 def wake_word():
-
+    
     # Initialize Porcupine
     porcupine = pvporcupine.create(
         access_key= pv_access_key,
@@ -139,6 +116,28 @@ def wake_word():
     except KeyboardInterrupt:
         print("Exiting...")
 
+def send_audio_file():
+    file_path = "C:/Users/iankh/Documents/GitHub/EIP-Qube/audio.wav"
+    download_path = "C:/Users/iankh/Documents/GitHub/EIP-Qube/Qube/downloaded_audio.wav"
+    with open (file_path, 'rb') as f:
+
+        files = {'file': ('audio.wav', f, 'audio/wav')}
+
+        response = requests.post(api_url, headers=headers, files=files) 
+
+        # Check if the request was successful (status code 200) 
+
+        if response.status_code == 200:
+            audio_content = response.content 
+            with open (download_path,'wb') as f:
+                f.write(audio_content)
+            print("File upload successfully.")
+
+        else: 
+
+    # Print an error message if the request was not successful 
+            print(f"Error: {response.status_code} - {response.text}")
+
 
 while True:
 
@@ -152,8 +151,9 @@ while True:
                             frames_per_buffer=CHUNK)
 
         print("Recording...")
-        listen_until_silence() 
-        play_audio("C:/Users/iankh/Documents/GitHub/EIP-Qube/output.wav")
+        listen_until_silence()
+        send_audio_file() 
+        play_audio("C:/Users/iankh/Documents/GitHub/EIP-Qube/Qube/downloaded_audio.wav")
 
         break
 
