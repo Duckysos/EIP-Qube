@@ -8,6 +8,8 @@ import time
 import requests
 from pydub import AudioSegment
 from pydub.playback import play
+AudioSegment.converter = r"C:/Users/user/OneDrive/Desktop/ffmpeg-2024-03-04-git-e30369bc1c-essentials_build/bin"
+
 api_url = "https://5fd3-92-237-138-59.ngrok-free.app/audio_to_audio"
 headers = {
      'ngrok-skip-browser-warning':'69420'
@@ -16,8 +18,8 @@ cobra = None
 porcupine = None
 audio = None
 audio_stream = None
-pv_access_key = 'vQGSiJdU4ezx8QXs2+S+c6D0Zutcp9z3a0y8R7YHfMrLP5rB+gEZFw=='
-custom_keyword_path = "C:/Users/iankh/Documents/GitHub/EIP-Qube/Qube/Hello-Cube_en_windows_v3_0_0.ppn"
+pv_access_key = '3P4D65EChSMd5ugsHg7sn62wFivcgd0wFRHrqXvgnPJngvqdwZ4RBw=='
+custom_keyword_path = "C:/Users/user/OneDrive/Documents/GitHub/EIP-Qube/Qube/Hello-Cube_en_windows_v3_0_0.ppn"
 
 
 
@@ -117,8 +119,8 @@ def wake_word():
         print("Exiting...")
 
 def send_audio_file():
-    file_path = "C:/Users/iankh/Documents/GitHub/EIP-Qube/audio.wav"
-    download_path = "C:/Users/iankh/Documents/GitHub/EIP-Qube/Qube/downloaded_audio.wav"
+    file_path = "C:/Users/user/OneDrive/Documents/GitHub/EIP-Qube/audio.wav"
+    download_path = "C:/Users/user/OneDrive/Documents/GitHub/EIP-Qube/Qube/downloaded_audio.wav"
     with open (file_path, 'rb') as f:
 
         files = {'file': ('audio.wav', f, 'audio/wav')}
@@ -138,9 +140,8 @@ def send_audio_file():
     # Print an error message if the request was not successful 
             print(f"Error: {response.status_code} - {response.text}")
 
-
-while True:
-
+try:
+    while True:
         wake_word()
         # Initialize pyaudio
         audio = pyaudio.PyAudio()
@@ -153,7 +154,7 @@ while True:
         print("Recording...")
         listen_until_silence()
         send_audio_file() 
-        play_audio("C:/Users/iankh/Documents/GitHub/EIP-Qube/Qube/downloaded_audio.wav")
+        play_audio("C:/Users/user/OneDrive/Documents/GitHub/EIP-Qube/Qube/downloaded_audio.wav")
 
-        break
-
+except KeyboardInterrupt:
+    print("Program exited by user.")
