@@ -141,21 +141,21 @@ try:
 
         while True:
             if detect_wake_word(initial_porcupine, audio_stream):
-                audio_stream.stop_stream()
-                audio_stream.close()
+                try:
+                    # Initialize pyaudio
+                    audio = pyaudio.PyAudio()
 
-            # Initialize pyaudio
-            audio = pyaudio.PyAudio()
-
-            # Open stream for recording
-            stream = audio.open(format=FORMAT, channels=CHANNELS,
+                    # Open stream for recording
+                    stream = audio.open(format=FORMAT, channels=CHANNELS,
                                 rate=RATE, input=True,
                                 frames_per_buffer=CHUNK)
 
-            print("Recording...")
-            listen_until_silence()
-            send_audio_file() 
-            play_audio(download_path)
+                    print("Recording...")
+                    listen_until_silence()
+                    send_audio_file() 
+                    play_audio(download_path)
+                except KeyboardInterrupt:
+                    print("Program exited by user.")
             
 except KeyboardInterrupt:
     print("Program exited by user.")
