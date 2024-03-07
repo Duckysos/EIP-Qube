@@ -20,6 +20,8 @@ audio = None
 audio_stream = None
 pv_access_key = '3P4D65EChSMd5ugsHg7sn62wFivcgd0wFRHrqXvgnPJngvqdwZ4RBw=='
 custom_keyword_path = "C:/Users/user/OneDrive/Documents/GitHub/EIP-Qube/Qube/Hello-Cube_en_windows_v3_0_0.ppn"
+file_path = "C:/Users/user/OneDrive/Documents/GitHub/EIP-Qube/audio.wav"
+download_path = "C:/Users/user/OneDrive/Documents/GitHub/EIP-Qube/Qube/downloaded_audio.wav"
 
 
 
@@ -35,6 +37,33 @@ WAVE_OUTPUT_FILENAME = "audio.wav"  # Output file name
 def play_audio(file_path):
      audio = AudioSegment.from_file(file_path)
      play(audio)
+
+def initialize_porcupine():
+    porcupine = pvporcupine.create(
+        access_key=pv_access_key,
+        keyword_paths=[custom_keyword_path]
+    )
+    return porcupine
+
+def intialize_audio_stream(porcupine):
+    audio = pyaudio.PyAudio()
+    audio_stream = audio.open(format=pyaudio.paInt16, channels=1,
+                              rate=porcupine.sample_rate, input=True,
+                              frames_per_buffer=porcupine.frame_length)
+    return audio, audio_stream
+
+def detect_wake_word (porcupine, audio_stream):
+    # Listen for the wake word
+    print("Listening for wake word...")
+    while True:
+        data = audio_stream.read(porcupine.frame_length, exception_on_overflow=False)
+        pcm = struct.unpack_from("h" * porcupine.frame_length, data)
+        keyword_index = porcupine.process(pcm)
+        if keyword_index >= 0:
+            print("Hello Cube detected!")
+            audio_stream.stop_stream()
+            audio_stream.close()
+            return True
 
 def listen_until_silence():
         frames = []
@@ -83,44 +112,8 @@ def listen_until_silence():
             wf.setsampwidth(audio.get_sample_size(FORMAT))
             wf.setframerate(RATE)
             wf.writeframes(b''.join(frames))
-    
-def wake_word():
-    
-    # Initialize Porcupine
-    porcupine = pvporcupine.create(
-        access_key= pv_access_key,
-        keyword_paths= [custom_keyword_path],
-    )
-
-
-    # Initialize PyAudio
-    audio = pyaudio.PyAudio()
-
-    audio_stream = audio.open(format=pyaudio.paInt16, channels=1,
-                    rate=porcupine.sample_rate, input=True,
-                    frames_per_buffer=porcupine.frame_length)
-
-    print("Listening...")
-
-
-    try:
-        while True:
-                data = audio_stream.read(porcupine.frame_length)
-                pcm = struct.unpack_from("h" * porcupine.frame_length, data)
-                keyword_index = porcupine.process(pcm)
-
-                if keyword_index >= 0:
-                    print("Hello Cube detected!")
-                    audio_stream.stop_stream()
-                    audio_stream.close()
-                    porcupine.delete()
-                    break  # Exit the inner loop if keyword detected
-    except KeyboardInterrupt:
-        print("Exiting...")
 
 def send_audio_file():
-    file_path = "C:/Users/user/OneDrive/Documents/GitHub/EIP-Qube/audio.wav"
-    download_path = "C:/Users/user/OneDrive/Documents/GitHub/EIP-Qube/Qube/downloaded_audio.wav"
     with open (file_path, 'rb') as f:
 
         files = {'file': ('audio.wav', f, 'audio/wav')}
@@ -142,19 +135,27 @@ def send_audio_file():
 
 try:
     while True:
-        wake_word()
-        # Initialize pyaudio
-        audio = pyaudio.PyAudio()
+        #Listening state
+        initial_porcupine = initialize_porcupine()
+        audio, audio_stream = intialize_audio_stream(initial_porcupine)
 
-        # Open stream for recording
-        stream = audio.open(format=FORMAT, channels=CHANNELS,
-                            rate=RATE, input=True,
-                            frames_per_buffer=CHUNK)
+        while True:
+            if detect_wake_word(initial_porcupine, audio_stream):
+                audio_stream.stop_stream()
+                audio_stream.close()
 
-        print("Recording...")
-        listen_until_silence()
-        send_audio_file() 
-        play_audio("C:/Users/user/OneDrive/Documents/GitHub/EIP-Qube/Qube/downloaded_audio.wav")
+            # Initialize pyaudio
+            audio = pyaudio.PyAudio()
 
+            # Open stream for recording
+            stream = audio.open(format=FORMAT, channels=CHANNELS,
+                                rate=RATE, input=True,
+                                frames_per_buffer=CHUNK)
+
+            print("Recording...")
+            listen_until_silence()
+            send_audio_file() 
+            play_audio(download_path)
+            
 except KeyboardInterrupt:
     print("Program exited by user.")
