@@ -21,7 +21,7 @@ pv_access_key = '3P4D65EChSMd5ugsHg7sn62wFivcgd0wFRHrqXvgnPJngvqdwZ4RBw=='
 custom_keyword_path = "C:/Users/iankh/Documents/GitHub/EIP-Qube/Qube/Hello-Cube_en_windows_v3_0_0.ppn"
 file_path = "C:/Users/iankh/Documents/GitHub/EIP-Qube/audio.wav"
 download_path = "C:/Users/iankh/Documents/GitHub/EIP-Qube/Qube/downloaded_audio.wav"
-
+is_conversation_mode = False
 
 
 # Audio recording parameters
@@ -33,9 +33,13 @@ RECORD_SECONDS = 5        # Duration of recording
 WAVE_OUTPUT_FILENAME = "audio.wav"  # Output file name
 
 
-def play_audio(file_path):
-     audio = AudioSegment.from_file(file_path)
-     play(audio)
+def toggle_conversation_mode():
+    global is_conversation_mode
+    is_conversation_mode = not is_conversation_mode
+    if is_conversation_mode:
+        print("Entering conversation mode...")
+    else:
+        print("Exiting conversation mode...")
 
 def initialize_porcupine():
     porcupine = pvporcupine.create(
@@ -60,9 +64,43 @@ def detect_wake_word (porcupine, audio_stream):
         keyword_index = porcupine.process(pcm)
         if keyword_index >= 0:
             print("Hello Cube detected!")
+            toggle_conversation_mode()
             audio_stream.stop_stream()
             audio_stream.close()
             return True
+
+def play_audio(file_path):
+     audio = AudioSegment.from_file(file_path)
+     play(audio)
+
+
+
+def listen():
+
+    cobra = pvcobra.create(access_key=pv_access_key)
+
+    listen_pa = pyaudio.PyAudio()
+
+    listen_audio_stream = listen_pa.open(
+                rate=cobra.sample_rate,
+                channels=1,
+                format=pyaudio.paInt16,
+                input=True,
+                frames_per_buffer=cobra.frame_length)
+
+    print("Listening...")
+
+    while True:
+        listen_pcm = listen_audio_stream.read(cobra.frame_length)
+        listen_pcm = struct.unpack_from("h" * cobra.frame_length, listen_pcm)
+           
+        if cobra.process(listen_pcm) > 0.3:
+            print("Voice detected")
+            listen_audio_stream.stop_stream
+            listen_audio_stream.close()
+            cobra.delete()
+            break
+
 
 def listen_until_silence():
         frames = []
@@ -134,27 +172,17 @@ def send_audio_file():
 
 try:
     while True:
-        #Listening state
-        initial_porcupine = initialize_porcupine()
-        audio, audio_stream = intialize_audio_stream(initial_porcupine)
-
-        while True:
-            if detect_wake_word(initial_porcupine, audio_stream):
-                try:
-                    # Initialize pyaudio
-                    audio = pyaudio.PyAudio()
-
-                    # Open stream for recording
-                    stream = audio.open(format=FORMAT, channels=CHANNELS,
-                                rate=RATE, input=True,
-                                frames_per_buffer=CHUNK)
-
-                    print("Recording...")
-                    listen_until_silence()
-                    send_audio_file() 
-                    play_audio(download_path)
-                except KeyboardInterrupt:
-                    print("Program exited by user.")
-            
+        if not is_conversation_mode:
+            # Listening for the wake word
+            initial_porcupine = initialize_porcupine()
+            audio, audio_stream = intialize_audio_stream(initial_porcupine)
+            detect_wake_word(initial_porcupine, audio_stream)
+        else:
+            # In conversation mode, record, send, and play response
+            listen()
+            print("Recording...")
+            listen_until_silence()
+            send_audio_file()
+            play_audio(download_path)
 except KeyboardInterrupt:
     print("Program exited by user.")
