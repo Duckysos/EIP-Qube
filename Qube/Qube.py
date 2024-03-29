@@ -12,7 +12,7 @@ import vlc
 import threading
 
 
-api_url = "https://62eb-92-237-138-59.ngrok-free.app/audio_to_audio"
+api_url = "https://2ac3-82-132-234-200.ngrok-free.app/audio_to_audio"
 headers = {
      'ngrok-skip-browser-warning':'69420'
 }
@@ -21,9 +21,9 @@ porcupine = None
 audio = None
 audio_stream = None
 pv_access_key = '3P4D65EChSMd5ugsHg7sn62wFivcgd0wFRHrqXvgnPJngvqdwZ4RBw=='
-custom_keyword_path = "C:/Users/iankh/Documents/GitHub/EIP-Qube/Qube/Hello-Cube_en_windows_v3_0_0.ppn"
-file_path = "C:/Users/iankh/Documents/GitHub/EIP-Qube/audio.wav"
-download_path = "C:/Users/iankh/Documents/GitHub/EIP-Qube/Qube/downloaded_audio.wav"
+custom_keyword_path = "/home/pi/EIP-Qube/Qube/Hello-Cube_en_windows_v3_0_0.ppn"
+file_path = "/home/pi/EIP-Qube/audio.wav"
+download_path = "/home/pi/EIP-Qube/Qube/downloaded_audio.wav"
 is_conversation_mode = False
 
 
@@ -188,8 +188,8 @@ def play_video(video_path):
     thread.start()
 
 try:
-    play_audio("C:/Users/iankh/Documents/GitHub/EIP-Qube/PowerOn.wav")
-    play_video("C:/Users/iankh/Documents/GitHub/EIP-Qube/videos/Test.mp4")
+    play_audio("/home/pi/EIP-Qube/PowerOn.wav")
+    play_video("/home/pi/EIP-Qube/videos/Test.mp4")
     while True:
         if not is_conversation_mode:
             # Listening for the wake word
@@ -204,5 +204,5 @@ try:
             send_audio_file()
             play_audio(download_path)
 except KeyboardInterrupt:
-    play_audio("C:/Users/iankh/Documents/GitHub/EIP-Qube/PowerOff.wav")
+    play_audio("/home/pi/EIP-Qube/PowerOff.wav")
     print("Program exited by user.")
