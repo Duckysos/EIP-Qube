@@ -8,6 +8,9 @@ import time
 import requests
 from pydub import AudioSegment
 from pydub.playback import play
+import vlc
+import threading
+
 
 api_url = "https://62eb-92-237-138-59.ngrok-free.app/audio_to_audio"
 headers = {
@@ -170,8 +173,23 @@ def send_audio_file():
     # Print an error message if the request was not successful 
             print(f"Error: {response.status_code} - {response.text}")
 
+def play_video(video_path):
+    def video_thread():
+        player = vlc.MediaPlayer()
+        media = vlc.Media(video_path, "file-caching =10000")
+        player.set_media(media)
+        player.play()
+        # Keep running until the video is playing
+        while player.is_playing():
+            time.sleep(1)
+        player.stop()
+
+    thread = threading.Thread(target=video_thread)
+    thread.start()
+
 try:
     play_audio("C:/Users/iankh/Documents/GitHub/EIP-Qube/PowerOn.wav")
+    play_video("C:/Users/iankh/Documents/GitHub/EIP-Qube/videos/Test.mp4")
     while True:
         if not is_conversation_mode:
             # Listening for the wake word
