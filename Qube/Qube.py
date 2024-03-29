@@ -171,6 +171,7 @@ def send_audio_file():
             print(f"Error: {response.status_code} - {response.text}")
 
 try:
+    play_audio("C:/Users/iankh/Documents/GitHub/EIP-Qube/PowerOn.wav")
     while True:
         if not is_conversation_mode:
             # Listening for the wake word
@@ -185,4 +186,5 @@ try:
             send_audio_file()
             play_audio(download_path)
 except KeyboardInterrupt:
+    play_audio("C:/Users/iankh/Documents/GitHub/EIP-Qube/PowerOff.wav")
     print("Program exited by user.")
