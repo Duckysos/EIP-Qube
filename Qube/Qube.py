@@ -36,9 +36,11 @@ cobra = None
 porcupine = None
 audio = None
 audio_stream = None
+playback_manager = None
+playback_thread = None
 pv_access_key = '3P4D65EChSMd5ugsHg7sn62wFivcgd0wFRHrqXvgnPJngvqdwZ4RBw=='
 custom_keyword_path = "/home/pi/EIP-Qube/Qube/Hello-Cube_en_raspberry-pi_v3_0_0.ppn"
-file_path = "/home/pi/EIP-Qube/audio.wav"
+file_path = "/home/pi/EIP-Qube/Qube/audio.wav"
 download_path = "/home/pi/EIP-Qube/Qube/downloaded_audio.wav"
 video_path = ""
 is_conversation_mode = False
@@ -234,6 +236,7 @@ async def start_lesson():
    Endpoint to start lesson.
    """
    # code to play opening sound
+   play_audio("/home/pi/EIP-Qube/PowerOn.wav")
 
 
    # Initialize the playback manager
@@ -247,7 +250,7 @@ async def start_lesson():
    try:
        playback_manager.set_video("/home/pi/EIP-Qube/videos/Mousey Idle.avi")
        play_audio("/home/pi/EIP-Qube/PowerOn.wav")
-       while active == True:
+       while True:
            if not is_conversation_mode:
                # Listening for the wake word
                initial_porcupine = initialize_porcupine()
@@ -260,20 +263,18 @@ async def start_lesson():
                listen_until_silence()
                send_audio_file()
                play_audio(download_path)
-   except KeyboardInterrupt:
+   except KeyboardInterrupt :
        play_audio("/home/pi/EIP-Qube/PowerOff.wav")
        print("Program exited by user.")
-   finally:
        playback_manager.stop()
        playback_thread.join()
 
-
-
-
-
-
 @app.get("/end_lesson/")
 async def end_lesson(query: str):
+   play_audio("/home/pi/EIP-Qube/PowerOff.wav")
+   print("Program exited by user.")
+   playback_manager.stop()
+   playback_thread.join()
    """
    Endpoint to start lesson.
    """
