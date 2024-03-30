@@ -21,7 +21,7 @@ porcupine = None
 audio = None
 audio_stream = None
 pv_access_key = '3P4D65EChSMd5ugsHg7sn62wFivcgd0wFRHrqXvgnPJngvqdwZ4RBw=='
-custom_keyword_path = "/home/pi/EIP-Qube/Qube/Hello-Cube_en_windows_v3_0_0.ppn"
+custom_keyword_path = "/home/pi/EIP-Qube/Qube/Hello-Cube_en_raspberry-pi_v3_0_0.ppn"
 file_path = "/home/pi/EIP-Qube/audio.wav"
 download_path = "/home/pi/EIP-Qube/Qube/downloaded_audio.wav"
 video_path = ""
@@ -176,20 +176,22 @@ def send_audio_file():
 
 class VideoPlaybackManager:
     def __init__(self):
-        self.player = vlc.Instance('--loop', '--fullscreen').media_player_new()
+        self.instance = vlc.Instance()
+        self.player = self.instance.media_player_new()
         self.current_video_path = None
         self.is_running = True
         self.lock = threading.Lock()
+        self.event_manager = self.player.event_manager()
+        self.event_manager.event_attach(vlc.EventType.MediaPlayerEndReached, self.loop_video)
 
     def set_video(self, video_path):
         """Safely update the video that should be playing."""
         with self.lock:
             if self.current_video_path != video_path:
                 self.current_video_path = video_path
-                media = vlc.Instance().media_new(self.current_video_path)
+                media = self.instance.media_new(self.current_video_path)
                 self.player.set_media(media)
-                if not self.player.is_playing():
-                    self.player.play()
+                self.player.play()
 
     def stop(self):
         """Stop the playback loop."""
@@ -197,13 +199,17 @@ class VideoPlaybackManager:
         self.player.stop()
 
     def playback_loop(self):
-        """Continuously check for updates to the video path and loop playback."""
+        """Continuously check for updates to the video path."""
         while self.is_running:
-            with self.lock:
-                if not self.player.is_playing() and self.current_video_path:
-                    # Restart the video if it's not playing (and should be)
-                    self.player.play()
             time.sleep(1)
+
+    def loop_video(self, event):
+        """Restart video playback when the end is reached to achieve looping."""
+        with self.lock:
+            self.player.stop()  # Stop the current video
+            media = self.instance.media_new(self.current_video_path)  # Reload the media
+            self.player.set_media(media)
+            self.player.play()  # Restart playback
 
 # Initialize the playback manager
 playback_manager = VideoPlaybackManager()
@@ -211,29 +217,19 @@ playback_manager = VideoPlaybackManager()
 # Start the playback loop in a separate thread
 playback_thread = threading.Thread(target=playback_manager.playback_loop)
 playback_thread.start()
-
-states_videos = {
-    'state1': '/home/pi/EIP-Qube/videos/Mousey Idle.avi',
-    'state2': '/home/pi/EIP-Qube/videos/Mousey Listening.avi',
-    # Add more states and videos as needed
-}
-
 # Example program loop
-current_state = 'state1'
 try:
+    playback_manager.set_video("/home/pi/EIP-Qube/videos/Mousey Idle.avi")
     play_audio("/home/pi/EIP-Qube/PowerOn.wav")
     while True:
         if not is_conversation_mode:
             # Listening for the wake word
-            if current_state in states_videos:
-                playback_manager.set_video(states_videos[current_state])
             initial_porcupine = initialize_porcupine()
             audio, audio_stream = intialize_audio_stream(initial_porcupine)
             detect_wake_word(initial_porcupine, audio_stream)
         else:
             # In conversation mode, record, send, and play response
             listen()
-            current_state = 'state2'
             print("Recording...")
             listen_until_silence()
             send_audio_file()
