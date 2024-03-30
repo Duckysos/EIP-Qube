@@ -174,36 +174,66 @@ def send_audio_file():
     # Print an error message if the request was not successful 
             print(f"Error: {response.status_code} - {response.text}")
 
-def play_video(video_path):
-    global playback_active
-    player = vlc.Instance('--fullscreen')
-    media_player = player.media_player_new()
-    media = player.media_new(video_path)
-    media_player.set_media(media)
-    media_player.play()
+class VideoPlaybackManager:
+    def __init__(self):
+        self.player = vlc.Instance('--loop', '--fullscreen').media_player_new()
+        self.current_video_path = None
+        self.is_running = True
+        self.lock = threading.Lock()
 
-    # Wait for the video to initialize
-    time.sleep(1)
+    def set_video(self, video_path):
+        """Safely update the video that should be playing."""
+        with self.lock:
+            if self.current_video_path != video_path:
+                self.current_video_path = video_path
+                media = vlc.Instance().media_new(self.current_video_path)
+                self.player.set_media(media)
+                if not self.player.is_playing():
+                    self.player.play()
 
-    # Loop to keep checking if playback should stop
-    while media_player.is_playing() and playback_active:
-        time.sleep(1)
+    def stop(self):
+        """Stop the playback loop."""
+        self.is_running = False
+        self.player.stop()
 
-    # Stop the video if the loop ends
-    media_player.stop()
+    def playback_loop(self):
+        """Continuously check for updates to the video path and loop playback."""
+        while self.is_running:
+            with self.lock:
+                if not self.player.is_playing() and self.current_video_path:
+                    # Restart the video if it's not playing (and should be)
+                    self.player.play()
+            time.sleep(1)
 
+# Initialize the playback manager
+playback_manager = VideoPlaybackManager()
+
+# Start the playback loop in a separate thread
+playback_thread = threading.Thread(target=playback_manager.playback_loop)
+playback_thread.start()
+
+states_videos = {
+    'state1': '/home/pi/EIP-Qube/videos/Mousey Idle.avi',
+    'state2': '/home/pi/EIP-Qube/videos/Mousey Listening.avi',
+    # Add more states and videos as needed
+}
+
+# Example program loop
+current_state = 'state1'
 try:
-    play_video("/home/pi/EIP-Qube/videos/Test.mp4")
     play_audio("/home/pi/EIP-Qube/PowerOn.wav")
     while True:
         if not is_conversation_mode:
             # Listening for the wake word
+            if current_state in states_videos:
+                playback_manager.set_video(states_videos[current_state])
             initial_porcupine = initialize_porcupine()
             audio, audio_stream = intialize_audio_stream(initial_porcupine)
             detect_wake_word(initial_porcupine, audio_stream)
         else:
             # In conversation mode, record, send, and play response
             listen()
+            current_state = 'state2'
             print("Recording...")
             listen_until_silence()
             send_audio_file()
@@ -211,3 +241,6 @@ try:
 except KeyboardInterrupt:
     play_audio("/home/pi/EIP-Qube/PowerOff.wav")
     print("Program exited by user.")
+finally:
+    playback_manager.stop()
+    playback_thread.join()
