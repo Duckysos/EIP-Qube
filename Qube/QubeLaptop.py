@@ -193,7 +193,8 @@ def play_video(video_path):
     media_player.stop()
 
 try:
-    play_video("/home/pi/EIP-Qube/videos/Test.mp4")
+    playback_thread = threading.Thread(target=play_video, args=("C:\\Users\\user\\OneDrive\\Documents\\GitHub\\EIP-Qube\\videos\\Mousey Answer Correct.avi"))
+    playback_thread.start()
     play_audio("/home/pi/EIP-Qube/PowerOn.wav")
     while True:
         if not is_conversation_mode:
