@@ -191,37 +191,6 @@ def send_audio_file():
            print(f"Error: {response.status_code} - {response.text}")
 
 class VideoPlaybackManager:
-<<<<<<< Updated upstream
-    def __init__(self):
-        self.instance = vlc.Instance()
-        self.player = self.instance.media_player_new()
-        self.current_video_path = None
-        self.is_running = True
-        self.lock = threading.Lock()
-        self.event_manager = self.player.event_manager()
-        self.event_manager.event_attach(vlc.EventType.MediaPlayerEndReached, self.loop_video)
-
-    def set_video(self, video_path):
-        """Safely update the video that should be playing."""
-        with self.lock:
-            if self.current_video_path != video_path:
-                self.current_video_path = video_path
-                media = self.instance.media_new(self.current_video_path)
-                self.player.set_media(media)
-                self.player.play()
-
-    def stop(self):
-        """Stop the playback loop."""
-        self.is_running = False
-        self.player.stop()
-
-    def playback_loop(self):
-        """Continuously check for updates to the video path."""
-        while self.is_running:
-            time.sleep(1)
-
-=======
-<<<<<<< HEAD
    def __init__(self):
        self.instance = vlc.Instance()
        self.player = self.instance.media_player_new()
@@ -305,79 +274,9 @@ async def start_lesson():
 
 @app.get("/end_lesson/")
 async def end_lesson(query: str):
-   play_audio("/home/pi/EIP-Qube/PowerOff.wav")
-    # code to play closing sound
+   """
+   Endpoint to start lesson.
+   """
+   # code to play closing sound
    global active
    active = False
-=======
-    def __init__(self):
-        self.instance = vlc.Instance()
-        self.player = self.instance.media_player_new()
-        self.current_video_path = None
-        self.is_running = True
-        self.lock = threading.Lock()
-        self.event_manager = self.player.event_manager()
-        self.event_manager.event_attach(vlc.EventType.MediaPlayerEndReached, self.loop_video)
-
-    def set_video(self, video_path):
-        """Safely update the video that should be playing."""
-        with self.lock:
-            if self.current_video_path != video_path:
-                self.current_video_path = video_path
-                media = self.instance.media_new(self.current_video_path)
-                self.player.set_media(media)
-                self.player.play()
-
-    def stop(self):
-        """Stop the playback loop."""
-        self.is_running = False
-        self.player.stop()
-
-    def playback_loop(self):
-        """Continuously check for updates to the video path."""
-        while self.is_running:
-            time.sleep(1)
-
->>>>>>> Stashed changes
-    def loop_video(self, event):
-        """Restart video playback when the end is reached to achieve looping."""
-        with self.lock:
-            self.player.stop()  # Stop the current video
-            media = self.instance.media_new(self.current_video_path)  # Reload the media
-            self.player.set_media(media)
-            self.player.play()  # Restart playback
-
-# Initialize the playback manager
-playback_manager = VideoPlaybackManager()
-
-# Start the playback loop in a separate thread
-playback_thread = threading.Thread(target=playback_manager.playback_loop)
-playback_thread.start()
-# Example program loop
-try:
-    playback_manager.set_video("/home/pi/EIP-Qube/videos/Mousey Idle.avi")
-    play_audio("/home/pi/EIP-Qube/PowerOn.wav")
-    while True:
-        if not is_conversation_mode:
-            # Listening for the wake word
-            initial_porcupine = initialize_porcupine()
-            audio, audio_stream = intialize_audio_stream(initial_porcupine)
-            detect_wake_word(initial_porcupine, audio_stream)
-        else:
-            # In conversation mode, record, send, and play response
-            listen()
-            print("Recording...")
-            listen_until_silence()
-            send_audio_file()
-            play_audio(download_path)
-except KeyboardInterrupt:
-    play_audio("/home/pi/EIP-Qube/PowerOff.wav")
-    print("Program exited by user.")
-finally:
-    playback_manager.stop()
-<<<<<<< Updated upstream
-    playback_thread.join()
-=======
-    playback_thread.join()
->>>>>>> d1aca2004e2e60b173cc30bcfd094cd0bcf9a09d
->>>>>>> Stashed changes
