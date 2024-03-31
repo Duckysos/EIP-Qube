@@ -253,6 +253,7 @@ async def start_lesson():
        while True:
            if not is_conversation_mode:
                # Listening for the wake word
+               playback_manager.set_video("/home/pi/EIP-Qube/videos/Mousey Listening.avi")
                initial_porcupine = initialize_porcupine()
                audio, audio_stream = intialize_audio_stream(initial_porcupine)
                detect_wake_word(initial_porcupine, audio_stream)
