@@ -195,14 +195,15 @@ def send_audio_file():
 
 class VideoPlayer:
     def __init__(self):
-        self.player = vlc.Instance('--zoom 1.1', '--input-repeat=99999')
+        self.player = vlc.Instance('--fullscreen', '--input-repeat=99999' )
 
     def play_video(self, video_path):
         self.media = self.player.media_new(video_path)
         self.media_player = self.player.media_player_new()
         self.media_player.set_media(self.media)
-        self.media_player.play()
         self.media_player.set_fullscreen(True)
+        self.media_player.video_set_crop_geometry("640x640")
+        self.media_player.play()
 
     def change_video(self, video_path):
         self.media_player.stop()
