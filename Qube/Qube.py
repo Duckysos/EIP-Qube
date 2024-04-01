@@ -217,6 +217,32 @@ def video_control_loop(player):
             player.change_video(new_video_path)
             break
 
+class VideoPlayer:
+    def __init__(self):
+        self.vlc_instance = vlc.Instance('--fullscreen','--loop')
+        self.player = self.vlc_instance.media_player_new()
+        self.event_manager = self.player.event_manager()
+        self.event_manager.event_attach(vlc.EventType.MediaPlayerEndReached, self.loop_video)
+
+    def play_video(self, video_path):
+        media = self.vlc_instance.media_new_path(video_path)
+        self.player.set_media(media)
+        self.player.play()
+        # Uncomment the next line if fullscreen is required
+        # self.player.set_fullscreen(True)
+        # Small delay for player to initiate
+
+    def loop_video(self, event):
+        self.player.stop()
+        self.player.play()
+
+    def change_video(self, video_path):
+        self.player.stop()
+        self.play_video(video_path)
+
+    def stop_video(self):
+        self.player.stop()
+
 
 @app.get("/start_lesson/")
 async def start_lesson():
@@ -239,6 +265,7 @@ async def start_lesson():
                detect_wake_word(initial_porcupine, audio_stream)
            else:
                # In conversation mode, record, send, and play response
+               player.change_video("/home/pi/EIP-Qube/videos/Mousey Listening.avi")
                listen()
                print("Recording...")
                listen_until_silence()
@@ -254,8 +281,6 @@ async def start_lesson():
 async def end_lesson(query: str):
    play_audio("/home/pi/EIP-Qube/PowerOff.wav")
    print("Program exited by user.")
-   playback_manager.stop()
-   playback_thread.join()
    """
    Endpoint to start lesson.
    """
