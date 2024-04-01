@@ -194,7 +194,7 @@ def send_audio_file():
 
 class VideoPlayer:
     def __init__(self):
-        self.player = vlc.Instance('--fullscreen', '--loop')
+        self.player = vlc.Instance('--zoom 1.1', '--input-repeat=99999')
 
     def play_video(self, video_path):
         self.media = self.player.media_new(video_path)
@@ -265,6 +265,7 @@ async def start_lesson():
                 player.change_video("/home/pi/EIP-Qube/videos/Mousey Listening.avi")
            else:
                # In conversation mode, record, send, and play response
+                play_audio("/home/pi/EIP-Qube/PowerOn.wav")
                 listen()
                 print("Recording...")
                 listen_until_silence()
