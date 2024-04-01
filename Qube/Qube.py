@@ -209,12 +209,12 @@ class VideoPlayer:
 
 def video_control_loop(player):
     while True:
-        cmd = input("Enter 'change' to change video or 'quit' to exit: ")
         if is_conversation_mode :
             new_video_path = ("/home/pi/EIP-Qube/videos/Mousey Listening.avi")
             player.change_video(new_video_path)
-        elif cmd == 'quit':
-            player.media_player.stop()
+        else:
+            new_video_path = ("/home/pi/EIP-Qube/videos/Mousey Waiting(Loading).avi")
+            player.change_video(new_video_path)
             break
 
 
@@ -226,7 +226,6 @@ async def start_lesson():
    # code to play opening sound
    player = VideoPlayer()
    player.play_video("/home/pi/EIP-Qube/videos/Mousey Waiting(Loading).avi")
-   play_audio("/home/pi/EIP-Qube/PowerOn.wav")
    control_thread = threading.Thread(target=video_control_loop, args=(player,))
    control_thread.start()
    control_thread.join()
