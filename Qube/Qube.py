@@ -192,42 +192,30 @@ def send_audio_file():
    # Print an error message if the request was not successful 
            print(f"Error: {response.status_code} - {response.text}")
 
-class VideoPlaybackManager:
-   def __init__(self):
-       self.instance = vlc.Instance()
-       self.player = self.instance.media_player_new()
-       self.current_video_path = None
-       self.is_running = True
-       self.lock = threading.Lock()
-       self.event_manager = self.player.event_manager()
-       self.event_manager.event_attach(vlc.EventType.MediaPlayerEndReached, self.loop_video)
+class VideoPlayer:
+    def __init__(self):
+        self.player = vlc.Instance('--fullscreen', '--loop')
 
-   def set_video(self, video_path):
-       """Safely update the video that should be playing."""
-       with self.lock:
-           if self.current_video_path != video_path:
-               self.current_video_path = video_path
-               media = self.instance.media_new(self.current_video_path)
-               self.player.set_media(media)
-               self.player.play()
+    def play_video(self, video_path):
+        self.media = self.player.media_new(video_path)
+        self.media_player = self.player.media_player_new()
+        self.media_player.set_media(self.media)
+        self.media_player.play()
+        self.media_player.set_fullscreen(True)
 
-   def stop(self):
-       """Stop the playback loop."""
-       self.is_running = False
-       self.player.stop()
+    def change_video(self, video_path):
+        self.media_player.stop()
+        self.play_video(video_path)
 
-   def playback_loop(self):
-       """Continuously check for updates to the video path."""
-       while self.is_running:
-           time.sleep(1)
-
-   def loop_video(self, event):
-       """Restart video playback when the end is reached to achieve looping."""
-       with self.lock:
-           self.player.stop()  # Stop the current video
-           media = self.instance.media_new(self.current_video_path)  # Reload the media
-           self.player.set_media(media)
-           self.player.play()  # Restart playback
+def video_control_loop(player):
+    while True:
+        cmd = input("Enter 'change' to change video or 'quit' to exit: ")
+        if is_conversation_mode :
+            new_video_path = ("/home/pi/EIP-Qube/videos/Mousey Listening.avi")
+            player.change_video(new_video_path)
+        elif cmd == 'quit':
+            player.media_player.stop()
+            break
 
 
 @app.get("/start_lesson/")
@@ -236,24 +224,17 @@ async def start_lesson():
    Endpoint to start lesson.
    """
    # code to play opening sound
+   player = VideoPlayer()
+   player.play_video("/home/pi/EIP-Qube/videos/Mousey Waiting(Loading).avi")
    play_audio("/home/pi/EIP-Qube/PowerOn.wav")
-
-
-   # Initialize the playback manager
-   global active
-   playback_manager = VideoPlaybackManager()
-
-   # Start the playback loop in a separate thread
-   playback_thread = threading.Thread(target=playback_manager.playback_loop)
-   playback_thread.start()
-   # Example program loop
+   control_thread = threading.Thread(target=video_control_loop, args=(player,))
+   control_thread.start()
+   control_thread.join()
    try:
-       playback_manager.set_video("/home/pi/EIP-Qube/videos/Mousey Idle.avi")
        play_audio("/home/pi/EIP-Qube/PowerOn.wav")
        while True:
            if not is_conversation_mode:
                # Listening for the wake word
-               playback_manager.set_video("/home/pi/EIP-Qube/videos/Mousey Listening.avi")
                initial_porcupine = initialize_porcupine()
                audio, audio_stream = intialize_audio_stream(initial_porcupine)
                detect_wake_word(initial_porcupine, audio_stream)
