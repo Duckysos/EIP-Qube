@@ -243,6 +243,7 @@ async def start_lesson():
                 listen()
                 print("Recording...")
                 listen_until_silence()
+                play_audio("/home/pi/EIP-Qube/PowerOn.wav")
                 send_audio_file()
                 play_audio(download_path)
    except KeyboardInterrupt :
