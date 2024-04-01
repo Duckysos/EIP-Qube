@@ -230,7 +230,6 @@ class VideoPlayer:
         self.player.play()
         # Uncomment the next line if fullscreen is required
         # self.player.set_fullscreen(True)
-        # Small delay for player to initiate
 
     def loop_video(self, event):
         self.player.stop()
@@ -259,18 +258,18 @@ async def start_lesson():
        play_audio("/home/pi/EIP-Qube/PowerOn.wav")
        while True:
            if not is_conversation_mode:
-               # Listening for the wake word
-               initial_porcupine = initialize_porcupine()
-               audio, audio_stream = intialize_audio_stream(initial_porcupine)
-               detect_wake_word(initial_porcupine, audio_stream)
+                # Listening for the wake word
+                initial_porcupine = initialize_porcupine()
+                audio, audio_stream = intialize_audio_stream(initial_porcupine)
+                detect_wake_word(initial_porcupine, audio_stream)
+                player.change_video("/home/pi/EIP-Qube/videos/Mousey Listening.avi")
            else:
                # In conversation mode, record, send, and play response
-               player.change_video("/home/pi/EIP-Qube/videos/Mousey Listening.avi")
-               listen()
-               print("Recording...")
-               listen_until_silence()
-               send_audio_file()
-               play_audio(download_path)
+                listen()
+                print("Recording...")
+                listen_until_silence()
+                send_audio_file()
+                play_audio(download_path)
    except KeyboardInterrupt :
        play_audio("/home/pi/EIP-Qube/PowerOff.wav")
        print("Program exited by user.")
