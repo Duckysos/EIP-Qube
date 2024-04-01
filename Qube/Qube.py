@@ -192,6 +192,7 @@ def send_audio_file():
    # Print an error message if the request was not successful 
            print(f"Error: {response.status_code} - {response.text}")
 
+
 class VideoPlayer:
     def __init__(self):
         self.player = vlc.Instance('--zoom 1.1', '--input-repeat=99999')
@@ -216,13 +217,12 @@ def video_control_loop(player):
             new_video_path = ("/home/pi/EIP-Qube/videos/Mousey Waiting(Loading).avi")
             player.change_video(new_video_path)
             break
-        
+
 @app.get("/start_lesson/")
 async def start_lesson():
    """
    Endpoint to start lesson.
    """
-   # code to play opening sound
    player = VideoPlayer()
    player.play_video("/home/pi/EIP-Qube/videos/Mousey Waiting(Loading).avi")
    control_thread = threading.Thread(target=video_control_loop, args=(player,))
@@ -236,7 +236,6 @@ async def start_lesson():
                 initial_porcupine = initialize_porcupine()
                 audio, audio_stream = intialize_audio_stream(initial_porcupine)
                 detect_wake_word(initial_porcupine, audio_stream)
-                player.change_video("/home/pi/EIP-Qube/videos/Mousey Listening.avi")
            else:
                # In conversation mode, record, send, and play response
                 play_audio("/home/pi/EIP-Qube/PowerOn.wav")
@@ -256,7 +255,7 @@ async def end_lesson(query: str):
    play_audio("/home/pi/EIP-Qube/PowerOff.wav")
    print("Program exited by user.")
    """
-   Endpoint to start lesson.
+   Endpoint to stop lesson.
    """
    # code to play closing sound
    global active
