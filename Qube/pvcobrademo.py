@@ -4,7 +4,7 @@ import numpy as np
 import struct
 import time
 
-pv_access_key = 'YcqT9Njmr3eqJQkf/nZNeDp0k5vX4OOHfvyrdsPf9IChaK36XJxu8w=='
+pv_access_key = ''
 
 '''
 cobra = pvcobra.create(access_key=pv_access_key)
