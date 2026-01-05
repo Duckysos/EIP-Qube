@@ -8,7 +8,7 @@ import time
 import requests
 
 # Initialize global variables
-pv_access_key = 'YcqT9Njmr3eqJQkf/nZNeDp0k5vX4OOHfvyrdsPf9IChaK36XJxu8w=='
+pv_access_key = ''
 custom_keyword_path = "C:\\Users\\iankh\\Documents\\GitHub\\EIP-Qube\\Qube\\Hello-Cube_en_windows_v3_0_0.ppn"
 FORMAT = pyaudio.paInt16  # Audio format (16-bit PCM)
 CHANNELS = 1              # Number of audio channels (1 for mono)
