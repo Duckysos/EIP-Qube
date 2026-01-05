@@ -38,7 +38,7 @@ audio = None
 audio_stream = None
 playback_manager = None
 playback_thread = None
-pv_access_key = '3P4D65EChSMd5ugsHg7sn62wFivcgd0wFRHrqXvgnPJngvqdwZ4RBw=='
+pv_access_key = ''
 custom_keyword_path = "/home/pi/EIP-Qube/Qube/Hello-Cube_en_raspberry-pi_v3_0_0.ppn"
 file_path = "/home/pi/EIP-Qube/Qube/audio.wav"
 download_path = "/home/pi/EIP-Qube/Qube/downloaded_audio.wav"
